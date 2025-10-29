@@ -62,11 +62,15 @@ class AppState(rx.State):
         except httpx.HTTPStatusError as e:
             logging.exception(f"HTTP error loading summary: {e}")
             async with self:
-                self.kpi_error = f"Failed to load data: {e.response.status_code}. Please check API backend."
+                self.kpi_error = f"API Error: {e.response.status_code}. Please ensure the api-backend service is running and accessible."
+        except httpx.ConnectError as e:
+            logging.exception(f"Connection error loading summary: {e}")
+            async with self:
+                self.kpi_error = "Connection Error: Cannot connect to the API backend. Is the service running?"
         except Exception as e:
             logging.exception(f"Error loading summary: {e}")
             async with self:
-                self.kpi_error = "An unexpected error occurred."
+                self.kpi_error = f"An unexpected error occurred: {e}"
         finally:
             async with self:
                 self.is_loading_kpis = False
@@ -111,12 +115,20 @@ class AppState(rx.State):
                     await mcp_client.close()
             logging.info("Falling back to Mistral or API query.")
             if MISTRAL_API_KEY:
-                from app.mistral_client import query_mistral
+                try:
+                    from app.mistral_client import query_mistral
 
-                answer = await query_mistral(question, self.kpi_rows)
-                async with self:
-                    self.chat_messages.append({"role": "assistant", "content": answer})
-            else:
+                    answer = await query_mistral(question, self.kpi_rows)
+                    async with self:
+                        self.chat_messages.append(
+                            {"role": "assistant", "content": answer}
+                        )
+                    return
+                except Exception as e:
+                    logging.exception(
+                        "Mistral query failed, falling back to API backend."
+                    )
+            try:
                 payload = {
                     "question": question,
                     "tenant_id": TENANT_ID,
@@ -133,6 +145,16 @@ class AppState(rx.State):
                         {
                             "role": "assistant",
                             "content": ai_response.get("answer", "No answer received."),
+                        }
+                    )
+            except Exception as e:
+                logging.exception("Final fallback to API backend failed.")
+                async with self:
+                    self.chat_error = "All AI services are currently unavailable. Please check your configuration and network."
+                    self.chat_messages.append(
+                        {
+                            "role": "assistant",
+                            "content": "I'm unable to process your request at the moment.",
                         }
                     )
         except httpx.HTTPStatusError as e:
