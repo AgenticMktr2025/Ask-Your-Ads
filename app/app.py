@@ -35,6 +35,6 @@ app = rx.App(
     ],
 )
 app.add_page(index, route="/")
-app.add_page(dashboard, route="/dashboard", on_load=AppState.load_summary)
+app.add_page(dashboard, route="/dashboard")
 app.add_page(copilot, route="/copilot")
 app.add_page(onboarding, route="/onboarding", on_load=OnboardingState.load_clients)

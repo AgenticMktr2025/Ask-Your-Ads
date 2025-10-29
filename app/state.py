@@ -26,6 +26,11 @@ class AppState(rx.State):
     kpi_error: str = ""
     chat_error: str = ""
     chat_input: str = ""
+    dashboard_configured: bool = False
+
+    @rx.event
+    def configure_dashboard(self):
+        self.dashboard_configured = True
 
     @rx.var
     def formatted_kpi_rows(self) -> list[dict[str, str]]:
