@@ -1,0 +1,8 @@
+
+reflex==0.8.17
+python-dotenv
+httpx
+mistralai
+httpx[http2]
+fastapi
+reflex-clerk-api @ git+https://github.com/reflex-dev/reflex-clerk-api.git
