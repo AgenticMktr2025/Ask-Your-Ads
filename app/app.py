@@ -5,6 +5,7 @@ from app.pages.copilot import copilot
 from app.pages.onboarding import onboarding
 from app.components.sidebar import main_content
 from app.connexify.state import OnboardingState
+from app.widgets.state import WidgetState
 
 
 def index() -> rx.Component:
@@ -35,6 +36,6 @@ app = rx.App(
     ],
 )
 app.add_page(index, route="/")
-app.add_page(dashboard, route="/dashboard")
+app.add_page(dashboard, route="/dashboard", on_load=WidgetState.load_available_widgets)
 app.add_page(copilot, route="/copilot")
 app.add_page(onboarding, route="/onboarding", on_load=OnboardingState.load_clients)
