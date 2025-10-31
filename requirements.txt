@@ -6,3 +6,4 @@ mistralai
 httpx[http2]
 fastapi
 reflex-clerk-api @ git+https://github.com/reflex-dev/reflex-clerk-api.git
+PyGithub
